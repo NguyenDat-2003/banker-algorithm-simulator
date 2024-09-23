@@ -90,6 +90,18 @@ const BankersAlgorithmSimulator = () => {
     return steps
   }
 
+  const displayStepsForNeedMatrix = () => {
+    const steps = []
+    for (let i = 0; i < processes; i++) {
+      for (let j = 0; j < resources; j++) {
+        steps.push(
+          `Need [${i + 1}][${j + 1}] = Max [${i + 1}][${j + 1}] - Allocated [${i + 1}][${j + 1}] = ${maximum[i][j]} - ${allocation[i][j]} = ${maximum[i][j] - allocation[i][j]}`
+        )
+      }
+    }
+    return steps
+  }
+
   const displaySafeSequences = () => {
     runBankersAlgorithm()
     setHideSafeSequences(true)
@@ -300,6 +312,17 @@ const BankersAlgorithmSimulator = () => {
           </table>
         </div>
       )}
+      {need.length > 0 && (
+        <div className='bg-white p-4 rounded shadow mt-4'>
+          <h2 className='text-xl font-semibold mb-2'>Steps to Find Need Matrix</h2>
+          {displayStepsForNeedMatrix().map((step, index) => (
+            <p key={index} className='font-mono'>
+              {step}
+            </p>
+          ))}
+        </div>
+      )}
+
       {hideBtnSafe && (
         <>
           <button className='mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600' onClick={displaySafeSequences}>
