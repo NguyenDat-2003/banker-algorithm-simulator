@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Button, InputNumber } from 'antd'
 
 const BankersAlgorithmSimulator = () => {
-  const [processes, setProcesses] = useState(1)
-  const [resources, setResources] = useState(1)
+  const [processes, setProcesses] = useState('')
+  const [resources, setResources] = useState('')
   const [totalResources, setTotalResources] = useState([])
   const [maximum, setMaximum] = useState([])
   const [allocation, setAllocation] = useState([])
@@ -16,6 +16,10 @@ const BankersAlgorithmSimulator = () => {
   const [hideContent, setHideContent] = useState(false)
 
   const initializeArrays = () => {
+    if (processes === '' || resources === '') {
+      alert('Number of Process and Number of Resources can not be NULL or 0')
+      return
+    }
     setTotalResources(new Array(resources).fill(0))
     setMaximum(Array.from({ length: processes }, () => new Array(resources).fill(0)))
     setAllocation(Array.from({ length: processes }, () => new Array(resources).fill(0)))
@@ -108,14 +112,19 @@ const BankersAlgorithmSimulator = () => {
   }
 
   const hanldeCreateAvailableAndNeedMatrix = () => {
+    const check = totalResources.every((item) => item > 0)
+    if (!check) {
+      alert('Instances of resources must be atleast 1')
+      return
+    }
     runBankersAlgorithm()
     setHideBtnSafe(true)
   }
 
   const handleResetValues = () => {
     setHideContent(false)
-    setProcesses(1)
-    setResources(1)
+    setProcesses('')
+    setResources('')
     setHideBtnSafe(false)
     setSafeSequence(false)
     setAvailable([])
