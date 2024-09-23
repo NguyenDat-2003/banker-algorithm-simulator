@@ -1,9 +1,10 @@
 import './App.css'
+import BankersAlgorithmSimulator from './components/BankersAlgorithmSimulator'
 
 function App() {
   return (
     <>
-      <h1 className='font-bold underline'>Hello world!</h1>
+      <BankersAlgorithmSimulator />
     </>
   )
 }
