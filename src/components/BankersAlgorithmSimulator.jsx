@@ -71,7 +71,6 @@ const BankersAlgorithmSimulator = () => {
             sequence.push(i)
             finish[i] = true
             safe = true
-            break
           }
         }
       }
