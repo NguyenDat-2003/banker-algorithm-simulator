@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Button, InputNumber } from 'antd'
+import _ from 'lodash'
 
 const BankersAlgorithmSimulator = () => {
   const [processes, setProcesses] = useState('')
   const [resources, setResources] = useState('')
   const [totalResources, setTotalResources] = useState([])
+  const [processRequest, setProcessRequest] = useState([])
   const [maximum, setMaximum] = useState([])
   const [allocation, setAllocation] = useState([])
   const [safeSequence, setSafeSequence] = useState([])
@@ -13,7 +15,11 @@ const BankersAlgorithmSimulator = () => {
   const [need, setNeed] = useState([])
   const [hideSafeSequences, setHideSafeSequences] = useState(false)
   const [hideBtnSafe, setHideBtnSafe] = useState(false)
+  const [hideBtnMakeRequest, setHideBtnMakeRequest] = useState(false)
   const [hideContent, setHideContent] = useState(false)
+  const [hideProRequest, setHideProRequest] = useState(false)
+  const [disabledBtnProRequest, setDisabledBtnProRequest] = useState(false)
+  const [idxProRequest, setIdxProRequest] = useState(1)
 
   const initializeArrays = () => {
     if (processes === '' || resources === '') {
@@ -25,6 +31,7 @@ const BankersAlgorithmSimulator = () => {
     setAllocation(Array.from({ length: processes }, () => new Array(resources).fill(0)))
     setError(null)
     setHideContent(true)
+    setHideSafeSequences(false)
   }
 
   const handle2DInputChange = (setter, row, col, value) => {
@@ -108,6 +115,7 @@ const BankersAlgorithmSimulator = () => {
   const displaySafeSequences = () => {
     runBankersAlgorithm()
     setHideSafeSequences(true)
+    setHideBtnMakeRequest(true)
   }
 
   const hanldeCreateAvailableAndNeedMatrix = () => {
@@ -126,8 +134,37 @@ const BankersAlgorithmSimulator = () => {
     setResources('')
     setHideBtnSafe(false)
     setSafeSequence(false)
+    setHideProRequest(false)
+    setHideBtnMakeRequest(false)
     setAvailable([])
     setNeed([])
+  }
+
+  const hanldeMakeProcessRequest = () => {
+    setIdxProRequest(1)
+    setHideProRequest(true)
+    setProcessRequest(new Array(resources).fill(0))
+    setDisabledBtnProRequest(true)
+  }
+
+  const hanldeRequestValidate = () => {
+    const check = processRequest.some((item, index) => item > available[index])
+    if (check) {
+      alert('Resource Requested is greater than total instances of that resource available')
+      return
+    }
+    setDisabledBtnProRequest(false)
+    runBankersAlgorithm()
+    if (idxProRequest && processRequest) {
+      const process = idxProRequest - 1
+      setAvailable(available.map((avai, idx) => avai - processRequest[idx]))
+      const _allocation = _.cloneDeep(allocation)
+      const _need = _.cloneDeep(need)
+      _allocation[process] = _allocation[process].map((all, idx) => all + processRequest[idx])
+      _need[process] = _need[process].map((need, idx) => need - processRequest[idx])
+      setAllocation(_allocation)
+      setNeed(_need)
+    }
   }
 
   return (
@@ -346,6 +383,46 @@ const BankersAlgorithmSimulator = () => {
               <p>Safe sequence found: {safeSequence.map((p) => `P${p + 1}`).join(' -> ')}</p>
             </div>
           )}
+        </>
+      )}
+
+      {hideBtnMakeRequest && (
+        <Button type='primary' className='p-5 my-4 !bg-cyan-600 text-lg hover:!bg-cyan-700' onClick={hanldeMakeProcessRequest} disabled={disabledBtnProRequest && 'true'}>
+          Make Process Request
+        </Button>
+      )}
+
+      {hideProRequest && (
+        <>
+          <table className='table-auto w-full border border-gray-300'>
+            <thead>
+              <tr className='bg-gray-100'>
+                <th className='border px-4 py-2 text-center'>
+                  Resources Name /<br /> Process Name - Id
+                </th>
+                {Array.from({ length: resources }, (_, index) => (
+                  <th key={index} className='border px-4 py-2 text-center'>
+                    R{index + 0}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <InputNumber min={1} max={5} value={idxProRequest} onChange={(value) => setIdxProRequest(value)} />
+                </td>
+                {processRequest.map((value, index) => (
+                  <td key={index} className='border px-4 py-2 text-center'>
+                    <InputNumber min={0} value={value} onChange={(val) => setProcessRequest((prev) => prev.map((v, i) => (i === index ? val : v)))} className='w-full' />
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+          <Button type='primary' className='p-5 my-4 !bg-yellow-500 text-lg hover:!bg-yellow-600' onClick={hanldeRequestValidate}>
+            Request Validation
+          </Button>
         </>
       )}
     </div>
