@@ -17,6 +17,7 @@ const BankersAlgorithmSimulator = () => {
   const [hideBtnSafe, setHideBtnSafe] = useState(false)
   const [hideBtnMakeRequest, setHideBtnMakeRequest] = useState(false)
   const [hideContent, setHideContent] = useState(false)
+  const [hideContentMaxtrix, setHideContentMaxtrix] = useState(false)
   const [hideProRequest, setHideProRequest] = useState(false)
   const [disabledBtnProRequest, setDisabledBtnProRequest] = useState(false)
   const [idxProRequest, setIdxProRequest] = useState(1)
@@ -82,7 +83,7 @@ const BankersAlgorithmSimulator = () => {
         }
       }
       if (!safe) {
-        setError('The system is in an unsafe state!')
+        setError('Hệ thống ở trạng thái không an toàn')
         return
       }
     }
@@ -116,9 +117,31 @@ const BankersAlgorithmSimulator = () => {
     runBankersAlgorithm()
     setHideSafeSequences(true)
     setHideBtnMakeRequest(true)
+    setHideBtnSafe(false)
+  }
+
+  const checkMaxGTEAllocated = (max, allocation, totalResources) => {
+    for (let i = 0; i < processes; i++) {
+      for (let j = 0; j < resources; j++) {
+        if (max[i][j] < allocation[i][j]) {
+          alert('Tài nguyên yêu cầu tối đa phải lớn hơn hoặc bằng tài nguyên đã cấp phát!')
+          return false
+        }
+        if (max[i][j] > totalResources[j]) {
+          alert('Tài nguyên yêu cầu tối đa phải bé hơn hoặc bằng tổng số lượng của từng tài nguyên!')
+          return false
+        }
+        if (allocation[i][j] > totalResources[j]) {
+          alert('Tài nguyên đã cấp phát phải bé hơn hoặc bằng tổng số lượng của từng tài nguyên!')
+          return false
+        }
+      }
+    }
+    return true
   }
 
   const hanldeCreateAvailableAndNeedMatrix = () => {
+    if (!checkMaxGTEAllocated(maximum, allocation, totalResources)) return
     const check = totalResources.every((item) => item > 0)
     if (!check) {
       alert('Instances of resources must be atleast 1')
@@ -126,13 +149,14 @@ const BankersAlgorithmSimulator = () => {
     }
     runBankersAlgorithm()
     setHideBtnSafe(true)
+    setHideContentMaxtrix(true)
   }
 
   const handleResetValues = () => {
     setHideContent(false)
+    setHideContentMaxtrix(false)
     setProcesses('')
     setResources('')
-    setHideBtnSafe(false)
     setSafeSequence(false)
     setHideProRequest(false)
     setHideBtnMakeRequest(false)
@@ -150,7 +174,7 @@ const BankersAlgorithmSimulator = () => {
   const hanldeRequestValidate = () => {
     const check = processRequest.some((item, index) => item > available[index])
     if (check) {
-      alert('Resource Requested is greater than total instances of that resource available')
+      alert('Tài nguyên không đủ để đáp ứng nhu cầu của tiến trình, hệ thống xảy ra deadlock')
       return
     }
     setDisabledBtnProRequest(false)
@@ -169,18 +193,17 @@ const BankersAlgorithmSimulator = () => {
 
   return (
     <div className='container mx-auto p-4'>
-      <h1 className='text-4xl font-bold mb-4 text-center'>Banker&apos;s Algorithm Simulator</h1>
+      <h1 className='text-4xl font-bold mb-4 text-center text-blue-500'>BANKER&apos;S ALGORITHM SIMULATOR</h1>
 
       <div className='bg-white p-4 rounded shadow'>
-        <h2 className='text-xl font-semibold mb-2'>Configuration</h2>
         <div className='grid grid-cols-2 gap-4'>
           <div>
-            <label className='block text-sm font-medium text-gray-700'>Processes</label>
+            <label className='block text-sm font-medium text-gray-700'>Số tiến trình</label>
             <InputNumber min={1} value={processes} onChange={(value) => setProcesses(value)} className='w-full' />
           </div>
 
           <div>
-            <label className='block text-sm font-medium text-gray-700'>Resources</label>
+            <label className='block text-sm font-medium text-gray-700'>Số lượng tài nguyên</label>
             <InputNumber min={1} value={resources} onChange={(value) => setResources(value)} className='w-full' />
           </div>
         </div>
@@ -199,7 +222,7 @@ const BankersAlgorithmSimulator = () => {
       {hideContent && (
         <>
           <div className='bg-white p-4 rounded shadow mt-4'>
-            <h2 className='text-xl font-semibold mb-6'>Total Instances of all resources</h2>
+            <h2 className='text-xl font-semibold mb-4'>Tổng số tài nguyên mỗi loại</h2>
             <table className='table-auto w-full border border-gray-300'>
               <thead>
                 <tr className='bg-gray-100'>
@@ -223,7 +246,7 @@ const BankersAlgorithmSimulator = () => {
           </div>
 
           <div className='bg-white p-4 rounded shadow mt-4'>
-            <h2 className='text-xl font-semibold mb-2'>Instances Allocated</h2>
+            <h2 className='text-xl font-semibold mb-4'>Nhập ma trận tài nguyên đã cấp phát</h2>
             <table className='table-auto w-full border border-gray-300'>
               <thead>
                 <tr className='bg-gray-100'>
@@ -251,7 +274,7 @@ const BankersAlgorithmSimulator = () => {
           </div>
 
           <div className='bg-white p-4 rounded shadow mt-4'>
-            <h2 className='text-xl font-semibold mb-2'>Maximum Allocation Required</h2>
+            <h2 className='text-xl font-semibold mb-4'>Nhập ma trận tài nguyên yêu cầu tối đa của mỗi tiến trình</h2>
             <table className='table-auto w-full border border-gray-300'>
               <thead>
                 <tr className='bg-gray-100'>
@@ -278,9 +301,9 @@ const BankersAlgorithmSimulator = () => {
             </table>
           </div>
 
-          <button className='mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600' onClick={hanldeCreateAvailableAndNeedMatrix}>
+          <Button danger type='primary' className='p-5 !bg-green-600 text-lg hover:!bg-green-700 mt-4' onClick={hanldeCreateAvailableAndNeedMatrix}>
             Generate Available & Need Matrix
-          </button>
+          </Button>
         </>
       )}
       {error && (
@@ -289,90 +312,88 @@ const BankersAlgorithmSimulator = () => {
         </div>
       )}
 
-      {/* Available Resources */}
-      {available.length > 0 && (
-        <div className='bg-white p-4 rounded shadow mt-4'>
-          <h2 className='text-xl font-semibold mb-2'>Resource Instances Available</h2>
-          <table className='table-auto w-full border border-gray-300'>
-            <thead>
-              <tr className='bg-gray-100'>
-                {available.map((value, index) => (
-                  <th key={index} className='border px-4 py-2 text-center'>
-                    R{index + 0}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {available.map((value, index) => (
-                  <td key={index} className='border px-4 py-2 text-center'>
-                    {value}
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {available.length > 0 && (
-        <div className='bg-white p-4 rounded shadow mt-4'>
-          <h2 className='text-xl font-semibold mb-2'>Steps to Find Available Resources</h2>
-          {displayStepsForAvailableResources().map((step, index) => (
-            <p key={index} className='font-mono'>
-              {step}
-            </p>
-          ))}
-        </div>
-      )}
-
-      {/* Need Matrix */}
-      {need.length > 0 && (
-        <div className='bg-white p-4 rounded shadow mt-4'>
-          <h2 className='text-xl font-semibold mb-2'>Need Matrix</h2>
-          <table className='table-auto w-full border border-gray-300'>
-            <thead>
-              <tr className='bg-gray-100'>
-                <th className='border px-4 py-2'>Processes</th>
-                {Array.from({ length: resources }, (_, index) => (
-                  <th key={index} className='border px-4 py-2 text-center'>
-                    R{index + 0}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {need.map((row, i) => (
-                <tr key={i}>
-                  <td className='border px-4 py-2 text-center'>P{i + 1}</td>
-                  {row.map((value, j) => (
-                    <td key={j} className='border px-4 py-2 text-center'>
-                      {value}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {need.length > 0 && (
-        <div className='bg-white p-4 rounded shadow mt-4'>
-          <h2 className='text-xl font-semibold mb-2'>Steps to Find Need Matrix</h2>
-          {displayStepsForNeedMatrix().map((step, index) => (
-            <p key={index} className='font-mono'>
-              {step}
-            </p>
-          ))}
-        </div>
-      )}
-
-      {hideBtnSafe && (
+      {hideContentMaxtrix && (
         <>
-          <button className='mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600' onClick={displaySafeSequences}>
+          {available.length > 0 && (
+            <div className='bg-white p-4 rounded shadow mt-4'>
+              <h2 className='text-xl font-semibold mb-4'>Tài nguyên có sẵn của hệ thống</h2>
+              <table className='table-auto w-full border border-gray-300'>
+                <thead>
+                  <tr className='bg-gray-100'>
+                    {available.map((value, index) => (
+                      <th key={index} className='border px-4 py-2 text-center'>
+                        R{index + 0}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {available.map((value, index) => (
+                      <td key={index} className='border px-4 py-2 text-center'>
+                        {value}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {available.length > 0 && (
+            <div className='bg-white p-4 rounded shadow mt-4'>
+              <h2 className='text-xl font-semibold mb-2'>Các bước tìm kiếm tài nguyên có sẵn của hệ thống</h2>
+              {displayStepsForAvailableResources().map((step, index) => (
+                <p key={index} className='font-mono'>
+                  {step}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {/* Need Matrix */}
+          {need.length > 0 && (
+            <div className='bg-white p-4 rounded shadow mt-4'>
+              <h2 className='text-xl font-semibold mb-2'>Ma trận tài nguyên tối đa mà các tiến trình cần dùng</h2>
+              <table className='table-auto w-full border border-gray-300'>
+                <thead>
+                  <tr className='bg-gray-100'>
+                    <th className='border px-4 py-2'>Processes</th>
+                    {Array.from({ length: resources }, (_, index) => (
+                      <th key={index} className='border px-4 py-2 text-center'>
+                        R{index + 0}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {need.map((row, i) => (
+                    <tr key={i}>
+                      <td className='border px-4 py-2 text-center'>P{i + 1}</td>
+                      {row.map((value, j) => (
+                        <td key={j} className='border px-4 py-2 text-center'>
+                          {value}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {need.length > 0 && (
+            <div className='bg-white p-4 rounded shadow mt-4'>
+              <h2 className='text-xl font-semibold mb-2'>Các bước tìm kiếm ma trận Need</h2>
+              {displayStepsForNeedMatrix().map((step, index) => (
+                <p key={index} className='font-mono'>
+                  {step}
+                </p>
+              ))}
+            </div>
+          )}
+          <Button type='primary' className='p-5 my-4 !bg-green-600 text-lg hover:!bg-green-700' onClick={displaySafeSequences} disabled={!hideBtnSafe && 'true'}>
             Find Safe Sequences
-          </button>
+          </Button>
         </>
       )}
 
@@ -380,7 +401,7 @@ const BankersAlgorithmSimulator = () => {
         <>
           {safeSequence.length > 0 && !error && (
             <div className='mt-4 p-4 bg-green-100 text-green-700 rounded'>
-              <p>Safe sequence found: {safeSequence.map((p) => `P${p + 1}`).join(' -> ')}</p>
+              <p>Hệ thống an toàn vì tồn tại thứ tự an toàn: {safeSequence.map((p) => `P${p + 1}`).join(' -> ')}</p>
             </div>
           )}
         </>
