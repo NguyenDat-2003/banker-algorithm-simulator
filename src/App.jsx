@@ -1,5 +1,5 @@
 import './App.css'
-import BankersAlgorithmSimulator from './components/BankersAlgorithmSimulator'
+import BankersAlgorithmSimulator from './components/BankerSimulator/BankersAlgorithmSimulator'
 import Theory from './components/Theory'
 
 function App() {
