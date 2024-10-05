@@ -3,6 +3,8 @@ import { Button, InputNumber } from 'antd'
 import _ from 'lodash'
 import AvailableNeedMaTrix from './AvailableNeedMaTrix'
 import GenerateTableContent from './GenerateTableContent'
+import AvailableMatrix from './AvailableMatrix/AvailableMatrix'
+import NeedMaTrix from './NeedMaTrix/NeedMaTrix'
 
 const BankersAlgorithmSimulator = () => {
   const [processes, setProcesses] = useState('')
@@ -22,7 +24,12 @@ const BankersAlgorithmSimulator = () => {
   const [hideContentMaxtrix, setHideContentMaxtrix] = useState(false)
   const [hideProRequest, setHideProRequest] = useState(false)
   const [disabledBtnProRequest, setDisabledBtnProRequest] = useState(false)
+  const [hideNewMaTrixRequest, setHideNewMaTrixRequest] = useState(false)
   const [idxProRequest, setIdxProRequest] = useState(1)
+
+  const [newAllocation, setNewAllocation] = useState([])
+  const [newAvailable, setNewAvailable] = useState([])
+  const [newNeed, setNewNeed] = useState([])
 
   const initializeArrays = () => {
     if (processes === '' || resources === '') {
@@ -32,6 +39,7 @@ const BankersAlgorithmSimulator = () => {
     setTotalResources(new Array(resources).fill(0))
     setMaximum(Array.from({ length: processes }, () => new Array(resources).fill(0)))
     setAllocation(Array.from({ length: processes }, () => new Array(resources).fill(0)))
+    setNewAllocation(Array.from({ length: processes }, () => new Array(resources).fill(0)))
     setHideContent(true)
   }
 
@@ -43,13 +51,24 @@ const BankersAlgorithmSimulator = () => {
       })
     })
 
+    let newAllocatedResources = Array(resources).fill(0)
+    newAllocation.forEach((alloc) => {
+      alloc.forEach((val, idx) => {
+        newAllocatedResources[idx] += val
+      })
+    })
+
     let availableResources = totalResources.map((total, idx) => total - allocatedResources[idx])
     setAvailable(availableResources)
 
-    let needMatrix = Array.from({ length: processes }, (_, p) => maximum[p].map((max, r) => max - allocation[p][r]))
-    setNeed(needMatrix)
+    let newAvailableResources = totalResources.map((total, idx) => total - newAllocatedResources[idx])
+    setNewAvailable(newAvailableResources)
 
-    let work = [...availableResources]
+    let needMatrix = Array.from({ length: processes }, (_, p) => maximum[p].map((max, r) => max - newAllocation[p][r]))
+    setNeed(needMatrix)
+    setNewNeed(needMatrix)
+
+    let work = [...newAvailableResources]
     let finish = Array(processes).fill(false)
     let sequence = []
     let safe = false
@@ -58,7 +77,7 @@ const BankersAlgorithmSimulator = () => {
         if (!finish[i]) {
           let exec = true
           for (let j = 0; j < resources; j++) {
-            if (needMatrix[i][j] > work[j]) {
+            if (newNeed[i][j] > work[j]) {
               exec = false
               break
             }
@@ -66,7 +85,7 @@ const BankersAlgorithmSimulator = () => {
 
           if (exec) {
             for (let k = 0; k < resources; k++) {
-              work[k] += allocation[i][k]
+              work[k] += newAllocation[i][k]
             }
             sequence.push(i)
             finish[i] = true
@@ -117,6 +136,7 @@ const BankersAlgorithmSimulator = () => {
       alert('Instances of resources must be atleast 1')
       return
     }
+    setNewAllocation([...allocation])
     runBankersAlgorithm()
     setHideBtnSafe(true)
     setHideContentMaxtrix(true)
@@ -133,6 +153,10 @@ const BankersAlgorithmSimulator = () => {
     setHideBtnMakeRequest(false)
     setAvailable([])
     setNeed([])
+    setAllocation([])
+    setNewAllocation([])
+    setNewAvailable([])
+    setNewNeed([])
   }
 
   const hanldeMakeProcessRequest = () => {
@@ -140,21 +164,45 @@ const BankersAlgorithmSimulator = () => {
     setHideProRequest(true)
     setProcessRequest(new Array(resources).fill(0))
     setDisabledBtnProRequest(true)
+    setHideNewMaTrixRequest(false)
   }
 
   const hanldeRequestValidate = () => {
+    setHideNewMaTrixRequest(true)
     setDisabledBtnProRequest(false)
-    runBankersAlgorithm()
     if (idxProRequest && processRequest) {
       const process = idxProRequest - 1
-      setAvailable(available.map((avai, idx) => avai - processRequest[idx]))
-      const _allocation = _.cloneDeep(allocation)
-      const _need = _.cloneDeep(need)
+      setNewAvailable(newAvailable.map((avai, idx) => avai - processRequest[idx]))
+      const _allocation = _.cloneDeep(newAllocation)
+      const _need = _.cloneDeep(newNeed)
       _allocation[process] = _allocation[process].map((all, idx) => all + processRequest[idx])
       _need[process] = _need[process].map((need, idx) => need - processRequest[idx])
-      setAllocation(_allocation)
-      setNeed(_need)
+      setNewAllocation(_allocation)
+      setNewNeed(_need)
     }
+  }
+
+  const displayStepsForAvailableResources = () => {
+    const steps = totalResources.map((total, idx) => {
+      const allocatedSum = newAllocation.reduce((sum, alloc) => sum + alloc[idx], 0)
+      return `Available R${idx} = ${total} - (${newAllocation.map((alloc) => alloc[idx]).join(' + ')}) = ${total - allocatedSum}`
+    })
+
+    return steps
+  }
+
+  const displayStepsForNeedMatrix = () => {
+    const steps = []
+    for (let i = 0; i < processes; i++) {
+      for (let j = 0; j < resources; j++) {
+        steps.push(
+          `Need [${i + 1}][${j + 1}] = Max [${i + 1}][${j + 1}] - Allocated [${i + 1}][${j + 1}] = ${maximum[i][j]} - ${newAllocation[i][j]} = ${
+            maximum[i][j] - newAllocation[i][j]
+          }`
+        )
+      }
+    }
+    return steps
   }
 
   return (
@@ -200,17 +248,16 @@ const BankersAlgorithmSimulator = () => {
       <AvailableNeedMaTrix
         available={available}
         totalResources={totalResources}
-        allocation={allocation}
         need={need}
         resources={resources}
-        processes={processes}
-        maximum={maximum}
         displaySafeSequences={displaySafeSequences}
         hideBtnSafe={hideBtnSafe}
         error={error}
         safeSequence={safeSequence}
         hideSafeSequences={hideSafeSequences}
         hideContentMaxtrix={hideContentMaxtrix}
+        displayStepsForAvailableResources={displayStepsForAvailableResources}
+        displayStepsForNeedMatrix={displayStepsForNeedMatrix}
       ></AvailableNeedMaTrix>
 
       {hideBtnMakeRequest && (
@@ -250,6 +297,14 @@ const BankersAlgorithmSimulator = () => {
           <Button type='primary' className='p-5 my-4 !bg-yellow-500 text-lg hover:!bg-yellow-600' onClick={hanldeRequestValidate} disabled={error && 'true'}>
             Request Validation
           </Button>
+        </>
+      )}
+
+      {hideNewMaTrixRequest && (
+        <>
+          <NeedMaTrix need={newAllocation} resources={resources} displayStepsForNeedMatrix={displayStepsForNeedMatrix} hideSteptoFindNeed />
+          <AvailableMatrix available={newAvailable} displayStepsForAvailableResources={displayStepsForAvailableResources} />
+          <NeedMaTrix need={newNeed} resources={resources} displayStepsForNeedMatrix={displayStepsForNeedMatrix} />
         </>
       )}
     </div>
