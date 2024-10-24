@@ -6,7 +6,6 @@ function AvailableNeedMaTrix({
   available,
   need,
   resources,
-  hideBtnSafe,
   displaySafeSequences,
   error,
   safeSequence,
@@ -22,8 +21,8 @@ function AvailableNeedMaTrix({
           <AvailableMatrix available={available} displayStepsForAvailableResources={displayStepsForAvailableResources} />
           <NeedMaTrix need={need} resources={resources} displayStepsForNeedMatrix={displayStepsForNeedMatrix} />
 
-          <Button type='primary' className='p-5 my-4 !bg-green-600 text-lg hover:!bg-green-700' onClick={displaySafeSequences} disabled={!hideBtnSafe && 'true'}>
-            Find Safe Sequences
+          <Button type='primary' className='p-5 my-4 !bg-green-600 text-lg hover:!bg-green-700' onClick={displaySafeSequences} disabled={error && 'true'}>
+            Tìm chuỗi an toàn
           </Button>
 
           {hideSafeSequences && (

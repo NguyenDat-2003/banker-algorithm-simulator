@@ -24,6 +24,7 @@ const BankersAlgorithmSimulator = () => {
   const [hideContentMaxtrix, setHideContentMaxtrix] = useState(false)
   const [hideProRequest, setHideProRequest] = useState(false)
   const [disabledBtnProRequest, setDisabledBtnProRequest] = useState(false)
+  const [disabledBtnProConfirmRequest, setDisabledBtnProConfirmRequest] = useState(false)
   const [hideNewMaTrixRequest, setHideNewMaTrixRequest] = useState(false)
   const [idxProRequest, setIdxProRequest] = useState(1)
 
@@ -43,49 +44,52 @@ const BankersAlgorithmSimulator = () => {
     setHideContent(true)
   }
 
-  const runBankersAlgorithm = () => {
-    let allocatedResources = Array(resources).fill(0)
+  const createAvaiNeedMatrix = () => {
+    const allocatedResources = Array(resources).fill(0)
     allocation.forEach((alloc) => {
       alloc.forEach((val, idx) => {
         allocatedResources[idx] += val
       })
     })
 
-    let newAllocatedResources = Array(resources).fill(0)
+    const newAllocatedResources = Array(resources).fill(0)
     newAllocation.forEach((alloc) => {
       alloc.forEach((val, idx) => {
         newAllocatedResources[idx] += val
       })
     })
+    setNewAllocation(allocation)
 
-    let availableResources = totalResources.map((total, idx) => total - allocatedResources[idx])
+    const availableResources = totalResources.map((total, idx) => total - allocatedResources[idx])
     setAvailable(availableResources)
 
-    let newAvailableResources = totalResources.map((total, idx) => total - newAllocatedResources[idx])
+    const newAvailableResources = totalResources.map((total, idx) => total - allocatedResources[idx])
     setNewAvailable(newAvailableResources)
 
-    let needMatrix = Array.from({ length: processes }, (_, p) => maximum[p].map((max, r) => max - newAllocation[p][r]))
+    const needMatrix = Array.from({ length: processes }, (_, p) => maximum[p].map((max, r) => max - allocation[p][r]))
     setNeed(needMatrix)
     setNewNeed(needMatrix)
+  }
 
-    let work = [...newAvailableResources]
-    let finish = Array(processes).fill(false)
+  const checkSafeState = (allocationMatrix, availableResources, needMatrix) => {
+    const work = [...availableResources]
+    const finish = Array(processes).fill(false)
     let sequence = []
     let safe = false
+
     for (let count = 0; count < processes; count++) {
       for (let i = 0; i < processes; i++) {
         if (!finish[i]) {
           let exec = true
           for (let j = 0; j < resources; j++) {
-            if (newNeed[i][j] > work[j]) {
+            if (needMatrix[i][j] > work[j]) {
               exec = false
               break
             }
           }
-
           if (exec) {
             for (let k = 0; k < resources; k++) {
-              work[k] += newAllocation[i][k]
+              work[k] += allocationMatrix[i][k]
             }
             sequence.push(i)
             finish[i] = true
@@ -94,12 +98,22 @@ const BankersAlgorithmSimulator = () => {
         }
       }
       if (!safe) {
-        setError('Hệ thống ở trạng thái không an toàn')
-        return
+        return { isSafe: false, sequence: [] }
       }
     }
 
-    setSafeSequence(sequence)
+    return { isSafe: true, sequence }
+  }
+
+  const runBankersAlgorithm = () => {
+    const result = checkSafeState(newAllocation, newAvailable, newNeed)
+
+    if (!result.isSafe) {
+      setError('Không tìm thấy chuỗi an toàn, hệ thống có thể đang bị tắc nghẽn')
+      return
+    }
+
+    setSafeSequence(result.sequence)
     setError(null)
   }
 
@@ -133,11 +147,10 @@ const BankersAlgorithmSimulator = () => {
     if (!checkMaxGTEAllocated(maximum, allocation, totalResources)) return
     const check = totalResources.every((item) => item > 0)
     if (!check) {
-      alert('Instances of resources must be atleast 1')
+      alert('Tổng số tài nguyên không nhỏ hơn 1')
       return
     }
-    setNewAllocation([...allocation])
-    runBankersAlgorithm()
+    createAvaiNeedMatrix()
     setHideBtnSafe(true)
     setHideContentMaxtrix(true)
   }
@@ -151,6 +164,9 @@ const BankersAlgorithmSimulator = () => {
     setHideSafeSequences(false)
     setHideProRequest(false)
     setHideBtnMakeRequest(false)
+    setHideNewMaTrixRequest(false)
+    setError(null)
+    setDisabledBtnProConfirmRequest(false)
     setAvailable([])
     setNeed([])
     setAllocation([])
@@ -164,21 +180,56 @@ const BankersAlgorithmSimulator = () => {
     setHideProRequest(true)
     setProcessRequest(new Array(resources).fill(0))
     setDisabledBtnProRequest(true)
-    setHideNewMaTrixRequest(false)
+    setDisabledBtnProConfirmRequest(false)
   }
 
   const hanldeRequestValidate = () => {
     setHideNewMaTrixRequest(true)
     setDisabledBtnProRequest(false)
+    setDisabledBtnProConfirmRequest(true)
     if (idxProRequest && processRequest) {
       const process = idxProRequest - 1
-      setNewAvailable(newAvailable.map((avai, idx) => avai - processRequest[idx]))
-      const _allocation = _.cloneDeep(newAllocation)
-      const _need = _.cloneDeep(newNeed)
+
+      // Bước 1: Kiểm tra nếu yêu cầu tài nguyên lớn hơn Need
+      for (let i = 0; i < resources; i++) {
+        if (processRequest[i] > newNeed[process][i]) {
+          alert(`Yêu cầu tài nguyên vượt quá nhu cầu của tiến trình P${process + 1} cho tài nguyên R${i}`)
+          return
+        }
+      }
+
+      // Bước 2: Kiểm tra nếu yêu cầu tài nguyên lớn hơn Available
+      for (let i = 0; i < resources; i++) {
+        if (processRequest[i] > newAvailable[i]) {
+          alert(`Tài nguyên không đủ để cấp phát cho tiến trình P${process + 1}`)
+          return
+        }
+      }
+
+      // Bước 3: Giả định cấp phát tài nguyên
+      let _avai = _.cloneDeep(newAvailable)
+      _avai = _avai.map((all, idx) => all - processRequest[idx])
+
+      let _allocation = _.cloneDeep(newAllocation)
+      let _need = _.cloneDeep(newNeed)
       _allocation[process] = _allocation[process].map((all, idx) => all + processRequest[idx])
       _need[process] = _need[process].map((need, idx) => need - processRequest[idx])
+
+      // Bước 4: Chạy thuật toán Banker để kiểm tra trạng thái an toàn
+      const result = checkSafeState(_allocation, _avai, _need)
+
+      if (!result.isSafe) {
+        setError('Không tìm thấy chuỗi an toàn, hệ thống có thể ở trạng thái tắc nghẽn!')
+        alert('Không tìm thấy chuỗi an toàn, hệ thống có thể ở trạng thái tắc nghẽn!')
+        return
+      }
+
+      // Bước 5: Nếu trạng thái an toàn, cập nhật trạng thái hệ thống
+      setNewAvailable(_avai)
       setNewAllocation(_allocation)
       setNewNeed(_need)
+      setSafeSequence(result.sequence)
+      setError(null)
     }
   }
 
@@ -207,8 +258,7 @@ const BankersAlgorithmSimulator = () => {
 
   return (
     <div className='container mx-auto p-4'>
-      <h1 className='text-4xl font-bold mb-4 text-center text-blue-500'>BANKER&apos;S ALGORITHM SIMULATOR</h1>
-
+      <span className='text-3xl font-bold text-center text-blue-500'>Minh họa giải thuật Banker</span>
       <div className='bg-white p-4 rounded shadow'>
         <div className='grid grid-cols-2 gap-4'>
           <div>
@@ -223,7 +273,7 @@ const BankersAlgorithmSimulator = () => {
         </div>
         <div className='mt-4'>
           <Button type='primary' className='p-5 mr-4 !bg-blue-600 text-lg hover:!bg-blue-700' onClick={initializeArrays} disabled={hideContent && true}>
-            Generate Tables
+            Tạo các bảng
           </Button>
           {hideContent && (
             <Button danger type='primary' className='p-5 !bg-rose-600 text-lg hover:!bg-rose-700' onClick={handleResetValues}>
@@ -262,7 +312,7 @@ const BankersAlgorithmSimulator = () => {
 
       {hideBtnMakeRequest && (
         <Button type='primary' className='p-5 my-4 !bg-cyan-600 text-lg hover:!bg-cyan-700' onClick={hanldeMakeProcessRequest} disabled={disabledBtnProRequest && 'true'}>
-          Make Process Request
+          Yêu cầu thêm tài nguyên
         </Button>
       )}
 
@@ -284,7 +334,7 @@ const BankersAlgorithmSimulator = () => {
             <tbody>
               <tr>
                 <td>
-                  <InputNumber min={1} max={5} value={idxProRequest} onChange={(value) => setIdxProRequest(value)} />
+                  <InputNumber min={1} max={processes} value={idxProRequest} onChange={(value) => setIdxProRequest(value)} />
                 </td>
                 {processRequest.map((value, index) => (
                   <td key={index} className='border px-4 py-2 text-center'>
@@ -294,8 +344,8 @@ const BankersAlgorithmSimulator = () => {
               </tr>
             </tbody>
           </table>
-          <Button type='primary' className='p-5 my-4 !bg-yellow-500 text-lg hover:!bg-yellow-600' onClick={hanldeRequestValidate} disabled={error && 'true'}>
-            Request Validation
+          <Button type='primary' className='p-5 my-4 !bg-yellow-500 text-lg hover:!bg-yellow-600' onClick={hanldeRequestValidate} disabled={disabledBtnProConfirmRequest && 'true'}>
+            Xác nhận yêu cầu
           </Button>
         </>
       )}

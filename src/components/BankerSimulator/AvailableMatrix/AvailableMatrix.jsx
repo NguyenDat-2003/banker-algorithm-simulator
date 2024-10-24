@@ -3,7 +3,7 @@ function AvailableMatrix({ available, displayStepsForAvailableResources }) {
     <>
       {available?.length > 0 && (
         <div className='bg-white p-4 rounded shadow mt-4'>
-          <h2 className='text-xl font-semibold mb-4'>Tài nguyên có sẵn của hệ thống</h2>
+          <h2 className='text-xl font-semibold mb-4'>Tài nguyên có sẵn của hệ thống (Available)</h2>
           <table className='table-auto w-full border border-gray-300'>
             <thead>
               <tr className='bg-gray-100'>
