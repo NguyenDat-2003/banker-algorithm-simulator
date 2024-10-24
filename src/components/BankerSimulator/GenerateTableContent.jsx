@@ -38,7 +38,7 @@ function GenerateTableContent({ resources, totalResources, setTotalResources, al
           </div>
 
           <div className='bg-white p-4 rounded shadow mt-4'>
-            <h2 className='text-xl font-semibold mb-4'>Nhập ma trận tài nguyên đã cấp phát</h2>
+            <h2 className='text-xl font-semibold mb-4'>Nhập ma trận tài nguyên đã cấp phát (Allocation)</h2>
             <table className='table-auto w-full border border-gray-300'>
               <thead>
                 <tr className='bg-gray-100'>
@@ -66,7 +66,7 @@ function GenerateTableContent({ resources, totalResources, setTotalResources, al
           </div>
 
           <div className='bg-white p-4 rounded shadow mt-4'>
-            <h2 className='text-xl font-semibold mb-4'>Nhập ma trận tài nguyên yêu cầu tối đa của mỗi tiến trình</h2>
+            <h2 className='text-xl font-semibold mb-4'>Nhập ma trận tài nguyên yêu cầu tối đa của mỗi tiến trình (Max)</h2>
             <table className='table-auto w-full border border-gray-300'>
               <thead>
                 <tr className='bg-gray-100'>
@@ -94,7 +94,7 @@ function GenerateTableContent({ resources, totalResources, setTotalResources, al
           </div>
 
           <Button danger type='primary' className='p-5 !bg-green-600 text-lg hover:!bg-green-700 mt-4' onClick={hanldeCreateAvailableAndNeedMatrix}>
-            Generate Available & Need Matrix
+            Tạo ma trận Available & Need
           </Button>
         </>
       )}

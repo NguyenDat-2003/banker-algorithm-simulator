@@ -3,7 +3,7 @@ function NeedMaTrix({ need, resources, displayStepsForNeedMatrix, hideSteptoFind
     <>
       {need?.length > 0 && (
         <div className='bg-white p-4 rounded shadow mt-4'>
-          <h2 className='text-xl font-semibold mb-2'>{hideSteptoFindNeed ? 'Ma trận tài nguyên đã cấp phát' : 'Ma trận tài nguyên tối đa mà các tiến trình cần dùng'}</h2>
+          <h2 className='text-xl font-semibold mb-2'>{hideSteptoFindNeed ? 'Ma trận tài nguyên đã cấp phát' : 'Ma trận tài nguyên tối đa mà các tiến trình cần dùng (Need)'}</h2>
           <table className='table-auto w-full border border-gray-300'>
             <thead>
               <tr className='bg-gray-100'>
