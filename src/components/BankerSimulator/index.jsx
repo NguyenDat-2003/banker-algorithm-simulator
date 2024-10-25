@@ -3,8 +3,8 @@ import { Button, InputNumber } from 'antd'
 import _ from 'lodash'
 import AvailableNeedMaTrix from './AvailableNeedMaTrix'
 import GenerateTableContent from './GenerateTableContent'
-import AvailableMatrix from './AvailableMatrix/AvailableMatrix'
-import NeedMaTrix from './NeedMaTrix/NeedMaTrix'
+import AvailableMatrix from './AvailableNeedMaTrix/AvailableMatrix/AvailableMatrix'
+import NeedMaTrix from './AvailableNeedMaTrix/NeedMaTrix/NeedMaTrix'
 
 const BankersAlgorithmSimulator = () => {
   const [processes, setProcesses] = useState('')
@@ -105,20 +105,14 @@ const BankersAlgorithmSimulator = () => {
     return { isSafe: true, sequence }
   }
 
-  const runBankersAlgorithm = () => {
+  const displaySafeSequences = () => {
     const result = checkSafeState(newAllocation, newAvailable, newNeed)
-
     if (!result.isSafe) {
       setError('Không tìm thấy chuỗi an toàn, hệ thống có thể đang bị tắc nghẽn')
       return
     }
-
     setSafeSequence(result.sequence)
     setError(null)
-  }
-
-  const displaySafeSequences = () => {
-    runBankersAlgorithm()
     setHideSafeSequences(true)
     setHideBtnMakeRequest(true)
   }
