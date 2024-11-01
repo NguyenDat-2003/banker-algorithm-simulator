@@ -38,7 +38,7 @@ function GenerateTableContent({ resources, totalResources, setTotalResources, al
           </div>
 
           <div className='bg-white p-4 rounded shadow mt-4'>
-            <h2 className='text-xl font-semibold mb-4'>Nhập ma trận tài nguyên đã cấp phát (Allocation)</h2>
+            <h2 className='text-xl font-semibold mb-4'>Nhập ma trận tài nguyên đã cấp phát (Allocated)</h2>
             <table className='table-auto w-full border border-gray-300'>
               <thead>
                 <tr className='bg-gray-100'>

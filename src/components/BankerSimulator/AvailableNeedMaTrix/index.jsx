@@ -1,6 +1,6 @@
 import { Button } from 'antd'
-import AvailableMatrix from './AvailableMatrix/AvailableMatrix'
-import NeedMaTrix from './NeedMaTrix/NeedMaTrix'
+import Matrix from '../../Matrix'
+import AvailableMatrix from '../../AvailableMatrix'
 
 function AvailableNeedMaTrix({
   available,
@@ -19,8 +19,7 @@ function AvailableNeedMaTrix({
       {hideContentMaxtrix && (
         <>
           <AvailableMatrix available={available} displayStepsForAvailableResources={displayStepsForAvailableResources} />
-          <NeedMaTrix need={need} resources={resources} displayStepsForNeedMatrix={displayStepsForNeedMatrix} />
-
+          <Matrix matrix={need} resources={resources} displayStepsForNeedMatrix={displayStepsForNeedMatrix} title='Ma trận tài nguyên tối đa mà các tiến trình cần dùng (Need)' />
           <Button type='primary' className='p-5 my-4 !bg-green-600 text-lg hover:!bg-green-700' onClick={displaySafeSequences} disabled={error && 'true'}>
             Tìm chuỗi an toàn
           </Button>

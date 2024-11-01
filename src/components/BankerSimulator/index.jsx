@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Button, InputNumber } from 'antd'
 import _ from 'lodash'
 import AvailableNeedMaTrix from './AvailableNeedMaTrix'
+import Matrix from '../Matrix'
+import AvailableMatrix from '../AvailableMatrix'
 import GenerateTableContent from './GenerateTableContent'
-import AvailableMatrix from './AvailableNeedMaTrix/AvailableMatrix/AvailableMatrix'
-import NeedMaTrix from './AvailableNeedMaTrix/NeedMaTrix/NeedMaTrix'
 
 const BankersAlgorithmSimulator = () => {
   const [processes, setProcesses] = useState('')
@@ -31,6 +31,7 @@ const BankersAlgorithmSimulator = () => {
   const [newAllocation, setNewAllocation] = useState([])
   const [newAvailable, setNewAvailable] = useState([])
   const [newNeed, setNewNeed] = useState([])
+  const [requestMatrix, setRequestMatrix] = useState([])
 
   const initializeArrays = () => {
     if (processes === '' || resources === '') {
@@ -41,6 +42,7 @@ const BankersAlgorithmSimulator = () => {
     setMaximum(Array.from({ length: processes }, () => new Array(resources).fill(0)))
     setAllocation(Array.from({ length: processes }, () => new Array(resources).fill(0)))
     setNewAllocation(Array.from({ length: processes }, () => new Array(resources).fill(0)))
+    setRequestMatrix(Array.from({ length: processes }, () => new Array(resources).fill(0)))
     setHideContent(true)
   }
 
@@ -69,6 +71,56 @@ const BankersAlgorithmSimulator = () => {
     const needMatrix = Array.from({ length: processes }, (_, p) => maximum[p].map((max, r) => max - allocation[p][r]))
     setNeed(needMatrix)
     setNewNeed(needMatrix)
+  }
+
+  const detectDeadlock = () => {
+    const work = [...newAvailable]
+    const finish = Array(processes).fill(false)
+    let deadlockedProcesses = []
+
+    let safe = false
+
+    // Lặp cho đến khi không còn tiến trình nào có thể hoàn thành
+    for (let count = 0; count < processes; count++) {
+      safe = false
+      for (let i = 0; i < processes; i++) {
+        if (!finish[i]) {
+          let exec = true
+          for (let j = 0; j < resources; j++) {
+            if (requestMatrix[i][j] > work[j]) {
+              exec = false
+              break
+            }
+          }
+
+          if (exec) {
+            for (let k = 0; k < resources; k++) {
+              work[k] += newAllocation[i][k]
+            }
+            finish[i] = true
+            safe = true
+          }
+        }
+      }
+      if (!safe) {
+        break
+      }
+    }
+
+    for (let i = 0; i < processes; i++) {
+      if (!finish[i]) {
+        deadlockedProcesses.push(i + 1) // Lưu các tiến trình bị tắc nghẽn
+      }
+    }
+
+    // Nếu có tiến trình bị tắc nghẽn
+    if (deadlockedProcesses.length > 0) {
+      alert(`Tắc nghẽn tồn tại, bao gồm các tiến trình: ${deadlockedProcesses.join(', ')}`)
+      return false
+    } else {
+      alert('Không có tiến trình nào bị tắc nghẽn')
+      return true
+    }
   }
 
   const checkSafeState = (allocationMatrix, availableResources, needMatrix) => {
@@ -159,6 +211,7 @@ const BankersAlgorithmSimulator = () => {
     setHideProRequest(false)
     setHideBtnMakeRequest(false)
     setHideNewMaTrixRequest(false)
+    setDisabledBtnProRequest(false)
     setError(null)
     setDisabledBtnProConfirmRequest(false)
     setAvailable([])
@@ -217,6 +270,13 @@ const BankersAlgorithmSimulator = () => {
         alert('Không tìm thấy chuỗi an toàn, hệ thống có thể ở trạng thái tắc nghẽn!')
         return
       }
+
+      // -----Tạo ma trận Request-------
+      setRequestMatrix((prev) => {
+        let newRequest = _.cloneDeep(prev)
+        newRequest[process] = newRequest[process].map((all, idx) => all + processRequest[idx])
+        return newRequest
+      })
 
       // Bước 5: Nếu trạng thái an toàn, cập nhật trạng thái hệ thống
       setNewAvailable(_avai)
@@ -315,9 +375,7 @@ const BankersAlgorithmSimulator = () => {
           <table className='table-auto w-full border border-gray-300'>
             <thead>
               <tr className='bg-gray-100'>
-                <th className='border px-4 py-2 text-center'>
-                  Resources Name /<br /> Process Name - Id
-                </th>
+                <th className='border px-4 py-2 text-center'>Process Name</th>
                 {Array.from({ length: resources }, (_, index) => (
                   <th key={index} className='border px-4 py-2 text-center'>
                     R{index + 0}
@@ -338,17 +396,31 @@ const BankersAlgorithmSimulator = () => {
               </tr>
             </tbody>
           </table>
-          <Button type='primary' className='p-5 my-4 !bg-yellow-500 text-lg hover:!bg-yellow-600' onClick={hanldeRequestValidate} disabled={disabledBtnProConfirmRequest && 'true'}>
+          <Button
+            type='primary'
+            className='p-5 my-4 mr-4 !bg-yellow-500 text-lg hover:!bg-yellow-600'
+            onClick={hanldeRequestValidate}
+            disabled={disabledBtnProConfirmRequest && 'true'}
+          >
             Xác nhận yêu cầu
+          </Button>
+          <Button type='primary' className='p-5 my-4 !bg-rose-500 text-lg hover:!bg-rose-600' onClick={detectDeadlock}>
+            Phát hiện tắc nghẽn
           </Button>
         </>
       )}
 
       {hideNewMaTrixRequest && (
         <>
-          <NeedMaTrix need={newAllocation} resources={resources} displayStepsForNeedMatrix={displayStepsForNeedMatrix} hideSteptoFindNeed />
+          <Matrix matrix={requestMatrix} resources={resources} hideSteptoFindMatrix title='Ma trận tài nguyên yêu cầu (Request)' />
+          <Matrix matrix={newAllocation} resources={resources} hideSteptoFindMatrix title='Ma trận tài nguyên đã cấp phát (Allocated)' hideSteptoFindNeed />
           <AvailableMatrix available={newAvailable} displayStepsForAvailableResources={displayStepsForAvailableResources} />
-          <NeedMaTrix need={newNeed} resources={resources} displayStepsForNeedMatrix={displayStepsForNeedMatrix} />
+          <Matrix
+            matrix={newNeed}
+            resources={resources}
+            displayStepsForNeedMatrix={displayStepsForNeedMatrix}
+            title='Ma trận tài nguyên tối đa mà các tiến trình cần dùng (Need)'
+          />
         </>
       )}
     </div>
