@@ -1,8 +1,36 @@
+import { Button } from 'antd'
+import { NavLink } from 'react-router-dom'
+
 function Theory() {
   return (
     <>
       <div className='container mx-auto px-4 py-5'>
         <h1 className='text-4xl font-bold mb-5 text-center uppercase text-cyan-500'>Tìm hiểu công nghệ Jamstack và xây dựng ứng dụng Web minh họa giải thuật Banker.</h1>
+
+        <section className='mb-8 bg-white shadow-md rounded-lg p-6 text-left'>
+          <h2 className='text-2xl font-semibold mb-4 text-gray-700'>Thông tin sinh viên</h2>
+          <ul className='list-disc pl-6 space-y-2 text-blue-500'>
+            <li>
+              <span>
+                <strong>2001215709</strong> - Nguyễn Tiến Đạt
+              </span>
+            </li>
+            <li>
+              <span>
+                <strong>2001210776</strong> - Nguyễn Tuấn Vĩ
+              </span>
+            </li>
+            <li>
+              <span>
+                <strong>Link Github</strong> ---
+                <a rel='noreferrer' className='text-gray-700 underline' href='https://github.com/NguyenDat-2003/banker-algorithm-simulator' target='_blank'>
+                  Banker-Algorithm-Simulator
+                </a>
+              </span>
+            </li>
+          </ul>
+        </section>
+
         <section className='mb-8 bg-white shadow-md rounded-lg p-6 text-left'>
           <h2 className='text-2xl font-semibold mb-4 text-gray-700'>Khái niệm</h2>
           <p className='text-gray-600 '>
@@ -99,6 +127,13 @@ function Theory() {
             </li>
           </ul>
         </section>
+        <div>
+          <NavLink to='/simulator'>
+            <Button type='primary' className='p-5 mt-4 !bg-blue-600 text-lg hover:!bg-blue-700'>
+              Triển khai ứng dụng
+            </Button>
+          </NavLink>
+        </div>
       </div>
     </>
   )
