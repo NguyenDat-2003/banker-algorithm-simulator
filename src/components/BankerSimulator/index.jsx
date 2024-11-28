@@ -5,6 +5,7 @@ import AvailableNeedMaTrix from './AvailableNeedMaTrix'
 import Matrix from '../Matrix'
 import AvailableMatrix from '../AvailableMatrix'
 import GenerateTableContent from './GenerateTableContent'
+import { NavLink } from 'react-router-dom'
 
 const BankersAlgorithmSimulator = () => {
   const [processes, setProcesses] = useState('')
@@ -311,119 +312,128 @@ const BankersAlgorithmSimulator = () => {
   }
 
   return (
-    <div className='container mx-auto p-4'>
-      <span className='text-3xl font-bold text-center text-blue-500'>Minh họa giải thuật Banker</span>
-      <div className='bg-white p-4 rounded shadow'>
-        <div className='grid grid-cols-2 gap-4'>
-          <div>
-            <label className='block text-sm font-medium text-gray-700'>Số tiến trình</label>
-            <InputNumber min={1} value={processes} onChange={(value) => setProcesses(value)} className='w-full' />
-          </div>
-
-          <div>
-            <label className='block text-sm font-medium text-gray-700'>Số lượng tài nguyên</label>
-            <InputNumber min={1} value={resources} onChange={(value) => setResources(value)} className='w-full' />
-          </div>
-        </div>
-        <div className='mt-4'>
-          <Button type='primary' className='p-5 mr-4 !bg-blue-600 text-lg hover:!bg-blue-700' onClick={initializeArrays} disabled={hideContent && true}>
-            Tạo các bảng
+    <>
+      <div className='text-left'>
+        <NavLink to='/'>
+          <Button type='primary' className='p-5 !bg-yellow-500 text-lg hover:!bg-yellow-600'>
+            Lý thuyết
           </Button>
-          {hideContent && (
-            <Button danger type='primary' className='p-5 !bg-rose-600 text-lg hover:!bg-rose-700' onClick={handleResetValues}>
-              Reset Values
-            </Button>
-          )}
-        </div>
+        </NavLink>
       </div>
+      <div className='container mx-auto p-4'>
+        <span className='text-3xl font-bold text-center text-blue-500'>Minh họa giải thuật Banker</span>
+        <div className='bg-white p-4 rounded shadow'>
+          <div className='grid grid-cols-2 gap-4'>
+            <div>
+              <label className='block text-sm font-medium text-gray-700'>Số tiến trình</label>
+              <InputNumber min={1} value={processes} onChange={(value) => setProcesses(value)} className='w-full' />
+            </div>
 
-      <GenerateTableContent
-        resources={resources}
-        totalResources={totalResources}
-        setTotalResources={setTotalResources}
-        allocation={allocation}
-        setAllocation={setAllocation}
-        maximum={maximum}
-        setMaximum={setMaximum}
-        hanldeCreateAvailableAndNeedMatrix={hanldeCreateAvailableAndNeedMatrix}
-        hideContent={hideContent}
-      />
+            <div>
+              <label className='block text-sm font-medium text-gray-700'>Số lượng tài nguyên</label>
+              <InputNumber min={1} value={resources} onChange={(value) => setResources(value)} className='w-full' />
+            </div>
+          </div>
+          <div className='mt-4'>
+            <Button type='primary' className='p-5 mr-4 !bg-blue-600 text-lg hover:!bg-blue-700' onClick={initializeArrays} disabled={hideContent && true}>
+              Tạo các bảng
+            </Button>
+            {hideContent && (
+              <Button danger type='primary' className='p-5 !bg-rose-600 text-lg hover:!bg-rose-700' onClick={handleResetValues}>
+                Reset Values
+              </Button>
+            )}
+          </div>
+        </div>
 
-      <AvailableNeedMaTrix
-        available={available}
-        totalResources={totalResources}
-        need={need}
-        resources={resources}
-        displaySafeSequences={displaySafeSequences}
-        hideBtnSafe={hideBtnSafe}
-        error={error}
-        safeSequence={safeSequence}
-        hideSafeSequences={hideSafeSequences}
-        hideContentMaxtrix={hideContentMaxtrix}
-        displayStepsForAvailableResources={displayStepsForAvailableResources}
-        displayStepsForNeedMatrix={displayStepsForNeedMatrix}
-      ></AvailableNeedMaTrix>
+        <GenerateTableContent
+          resources={resources}
+          totalResources={totalResources}
+          setTotalResources={setTotalResources}
+          allocation={allocation}
+          setAllocation={setAllocation}
+          maximum={maximum}
+          setMaximum={setMaximum}
+          hanldeCreateAvailableAndNeedMatrix={hanldeCreateAvailableAndNeedMatrix}
+          hideContent={hideContent}
+        />
 
-      {hideBtnMakeRequest && (
-        <Button type='primary' className='p-5 my-4 !bg-cyan-600 text-lg hover:!bg-cyan-700' onClick={hanldeMakeProcessRequest} disabled={disabledBtnProRequest && 'true'}>
-          Yêu cầu thêm tài nguyên
-        </Button>
-      )}
+        <AvailableNeedMaTrix
+          available={available}
+          totalResources={totalResources}
+          need={need}
+          resources={resources}
+          displaySafeSequences={displaySafeSequences}
+          hideBtnSafe={hideBtnSafe}
+          error={error}
+          safeSequence={safeSequence}
+          hideSafeSequences={hideSafeSequences}
+          hideContentMaxtrix={hideContentMaxtrix}
+          displayStepsForAvailableResources={displayStepsForAvailableResources}
+          displayStepsForNeedMatrix={displayStepsForNeedMatrix}
+        ></AvailableNeedMaTrix>
 
-      {hideProRequest && (
-        <>
-          <table className='table-auto w-full border border-gray-300'>
-            <thead>
-              <tr className='bg-gray-100'>
-                <th className='border px-4 py-2 text-center'>Process Name</th>
-                {Array.from({ length: resources }, (_, index) => (
-                  <th key={index} className='border px-4 py-2 text-center'>
-                    R{index + 0}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <InputNumber min={1} max={processes} value={idxProRequest} onChange={(value) => setIdxProRequest(value)} />
-                </td>
-                {processRequest.map((value, index) => (
-                  <td key={index} className='border px-4 py-2 text-center'>
-                    <InputNumber min={0} value={value} onChange={(val) => setProcessRequest((prev) => prev.map((v, i) => (i === index ? val : v)))} className='w-full' />
+        {hideBtnMakeRequest && (
+          <Button type='primary' className='p-5 my-4 !bg-cyan-600 text-lg hover:!bg-cyan-700' onClick={hanldeMakeProcessRequest} disabled={disabledBtnProRequest && 'true'}>
+            Yêu cầu thêm tài nguyên
+          </Button>
+        )}
+
+        {hideProRequest && (
+          <>
+            <table className='table-auto w-full border border-gray-300'>
+              <thead>
+                <tr className='bg-gray-100'>
+                  <th className='border px-4 py-2 text-center'>Process Name</th>
+                  {Array.from({ length: resources }, (_, index) => (
+                    <th key={index} className='border px-4 py-2 text-center'>
+                      R{index + 0}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <InputNumber min={1} max={processes} value={idxProRequest} onChange={(value) => setIdxProRequest(value)} />
                   </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-          <Button
-            type='primary'
-            className='p-5 my-4 mr-4 !bg-yellow-500 text-lg hover:!bg-yellow-600'
-            onClick={hanldeRequestValidate}
-            disabled={disabledBtnProConfirmRequest && 'true'}
-          >
-            Xác nhận yêu cầu
-          </Button>
-          <Button type='primary' className='p-5 my-4 !bg-rose-500 text-lg hover:!bg-rose-600' onClick={detectDeadlock}>
-            Phát hiện tắc nghẽn
-          </Button>
-        </>
-      )}
+                  {processRequest.map((value, index) => (
+                    <td key={index} className='border px-4 py-2 text-center'>
+                      <InputNumber min={0} value={value} onChange={(val) => setProcessRequest((prev) => prev.map((v, i) => (i === index ? val : v)))} className='w-full' />
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+            <Button
+              type='primary'
+              className='p-5 my-4 mr-4 !bg-yellow-500 text-lg hover:!bg-yellow-600'
+              onClick={hanldeRequestValidate}
+              disabled={disabledBtnProConfirmRequest && 'true'}
+            >
+              Xác nhận yêu cầu
+            </Button>
+            <Button type='primary' className='p-5 my-4 !bg-rose-500 text-lg hover:!bg-rose-600' onClick={detectDeadlock}>
+              Phát hiện tắc nghẽn
+            </Button>
+          </>
+        )}
 
-      {hideNewMaTrixRequest && (
-        <>
-          <Matrix matrix={requestMatrix} resources={resources} hideSteptoFindMatrix title='Ma trận tài nguyên yêu cầu (Request)' />
-          <Matrix matrix={newAllocation} resources={resources} hideSteptoFindMatrix title='Ma trận tài nguyên đã cấp phát (Allocated)' hideSteptoFindNeed />
-          <AvailableMatrix available={newAvailable} displayStepsForAvailableResources={displayStepsForAvailableResources} />
-          <Matrix
-            matrix={newNeed}
-            resources={resources}
-            displayStepsForNeedMatrix={displayStepsForNeedMatrix}
-            title='Ma trận tài nguyên tối đa mà các tiến trình cần dùng (Need)'
-          />
-        </>
-      )}
-    </div>
+        {hideNewMaTrixRequest && (
+          <>
+            <Matrix matrix={requestMatrix} resources={resources} hideSteptoFindMatrix title='Ma trận tài nguyên yêu cầu (Request)' />
+            <Matrix matrix={newAllocation} resources={resources} hideSteptoFindMatrix title='Ma trận tài nguyên đã cấp phát (Allocated)' hideSteptoFindNeed />
+            <AvailableMatrix available={newAvailable} displayStepsForAvailableResources={displayStepsForAvailableResources} />
+            <Matrix
+              matrix={newNeed}
+              resources={resources}
+              displayStepsForNeedMatrix={displayStepsForNeedMatrix}
+              title='Ma trận tài nguyên tối đa mà các tiến trình cần dùng (Need)'
+            />
+          </>
+        )}
+      </div>
+    </>
   )
 }
 
